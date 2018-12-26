@@ -1,0 +1,91 @@
+---
+title: "PML Project"
+author: "Juan Mari Sebastian Carino"
+date: "December 8, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(message = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+### Executive Summary
+
+  In this project, the author has tested four algorithms: Trees, Naive Bayes, Support Vector Machine, and Random Forest in predicting the classe of the test dataset. Cross validation was performed through 10 folds from the training dataset. Out of four, only random forest generated a higher accuracy based on the confusionMatrix function of the caret package. With the accuracy as basis of choosing the model, the author concluded to use the random forest in predicting the classe of test dataset. The prediction resulted to a 95% score in the prediction quiz thereby, providing proof that the author has correctly chosen the best model for the prediction of test data. 
+
+### Building the model and Cross Validation
+
+  In this case, the author will predict the "Classe" for each observation in the testing dataset. There are a number of classification algorithms available in the caret package. With this, the accuracy shall be the basis of choosing the model in predicting the classe of the test dataset. The following classification algorithms that were performed and analyzed are: Trees, Naive Bayes, Support Vector Machine, and Random Forest.
+  
+  Cross validation is performed through 10 folds. The author chose 10 folds so that, the model will have less variability and less biased. 
+
+```{r results='hide'}
+# Load the training and testing datasets
+training <- read.csv("pml-training.csv")
+testing <- read.csv("pml-testing.csv")
+
+# Subsetting the datasets (only the accelerometers and classe)
+library(plyr)
+library(dplyr)
+training <- select(training, classe, grep("accel", names(training)))
+testing <- select(testing, grep("accel", names(testing)))
+
+# Remove variables with no values
+training <- training[ , colSums(!is.na(training)) == nrow(training)]
+testing <- testing[ , colSums(!is.na(testing)) == nrow(testing)]
+
+# Building the model
+library(caret)
+library(randomForest)
+library(kernlab)
+
+        # Trees
+        model_1 <- train(classe ~., data = training, method="rpart", trControl = trainControl(method = "cv", number = 10, verboseIter = TRUE))
+        accuracy_1 <- confusionMatrix(predict(model_1, training), training$classe)
+        
+    
+        # Naive Bayes
+        model_2 <- train(classe ~., data = training, method="nb", trControl = trainControl(method = "cv", number = 10, verboseIter = TRUE))
+        accuracy_2 <- confusionMatrix(predict(model_2, training), training$classe)
+        
+        # Linear SVC 
+        model_3 <- train(classe ~., data = training, method="svmLinear", trControl = trainControl(method = "cv", number = 10, verboseIter = TRUE))
+        accuracy_3 <- confusionMatrix(predict(model_3, training), training$classe)
+        
+        # Random Forest
+        model_4 <- train(classe ~., data = training, method="rf", trControl = trainControl(method = "cv", number = 10, verboseIter = TRUE))
+        accuracy_4 <- confusionMatrix(predict(model_4, training), training$classe)
+        
+```
+
+### Analysis & Results 
+
+Below shows the accuracy rate for each model after carrying out cross validation. Random Forest, although much slower has proven to be the most accurate garnering a 100% accuracy. With that, we conclude that Random Forest is the best model to predict the test dataset. 
+```{r }
+# Comparing the accuracy for each models
+data.frame(model=c("Trees", "Naive Bayes", "Linear SVC", "Random Forest"),
+           accuracy = c(accuracy_1[[3]][1], accuracy_2[[3]][1], accuracy_3[[3]][1], accuracy_4[[3]][1]))
+```
+
+The graph of Random Forest is presented as follows:
+```{r }
+# Accuracy (Cross-Validation)
+plot(model_4)
+
+# Error 
+plot(model_4$finalModel, main = "Error Percentage")
+
+```
+
+The prediction for the test dataset shows the following: 
+```{r }
+data.frame(Observation = 1:20, Classe = predict(model_4, testing))
+```
+
+### Conclusion
+
+In this project, 4 classification algorithms were performed and only Random Forest was able to predict correctly the test dataset (based on the results of the quiz). It is important to take into consideration the application of each algorithms. Random Forest has a slower processing time despite its high accuracy. In performing machine learning, one must carefully take note that in choosing a final model, accuracy, application, errors, variability, and bias must be looked into.
+
