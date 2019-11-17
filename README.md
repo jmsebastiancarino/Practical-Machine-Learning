@@ -47,7 +47,7 @@
 
 
 
-<h1 class="title toc-ignore">PML Project</h1>
+<h1 class="title toc-ignore">Machine Learning Project</h1>
 
 <h4 class="author"><em>Juan Mari Sebastian Carino</em></h4>
 
